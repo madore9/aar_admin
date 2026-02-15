@@ -1,0 +1,12 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+COPY pyproject.toml .
+
+RUN pip install uv && uv sync --no-dev --frozen || pip install -e .
+
+COPY . .
+RUN chmod +x start-server.sh
+
+EXPOSE 8000
+CMD ["./start-server.sh"]
