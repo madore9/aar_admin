@@ -7,6 +7,14 @@
             </svg>
             Academic Plans
         </a>
+        {% if user_role == 'ADMIN_USER' %}
+        <a href="{% url 'course_lists' %}"
+           class="{% if active_tab == 'course-lists' %}border-b-2 border-[#a51c30] text-[#a51c30] font-medium{% else %}border-b-2 border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300{% endif %} group inline-flex items-center py-4 px-1 text-sm">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            Course Lists
+        </a>
         <a href="{% url 'batch_add' %}"
            class="{% if active_tab == 'batch' %}border-b-2 border-[#a51c30] text-[#a51c30] font-medium{% else %}border-b-2 border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300{% endif %} group inline-flex items-center py-4 px-1 text-sm">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,7 +22,6 @@
             </svg>
             Batch Add
         </a>
-        {% if user_role == 'ADMIN_USER' %}
         <a href="{% url 'course_lookup' %}"
            class="{% if active_tab == 'lookup' %}border-b-2 border-[#a51c30] text-[#a51c30] font-medium{% else %}border-b-2 border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300{% endif %} group inline-flex items-center py-4 px-1 text-sm">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

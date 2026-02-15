@@ -7,3 +7,17 @@ class CourseList(BaseModel):
     name: str
     description: str
     courses: list[RequirementCourse] = []
+
+
+class CourseListCreate(BaseModel):
+    name: str
+    description: str = ""
+
+
+class CourseListUpdate(BaseModel):
+    name: str
+    description: str = ""
+
+
+class CourseListCourseAdd(BaseModel):
+    courses: list[RequirementCourse]
