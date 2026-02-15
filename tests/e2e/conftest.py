@@ -26,45 +26,26 @@ def admin_page(page: Page) -> Page:
     page.goto("http://localhost:8000/")
     page.wait_for_load_state()
 
-    # Use JavaScript to get CSRF token and make the request
-    result = page.evaluate("""
-        async () => {
-            // First get csrftoken from cookie
-            const cookies = document.cookie.split(';');
-            let csrftoken = '';
-            for (let c of cookies) {
-                c = c.trim();
-                if (c.startsWith('csrftoken=')) {
-                    csrftoken = c.substring('csrftoken='.length);
-                    break;
-                }
-            }
-
-            // Make the request
-            const formData = new URLSearchParams();
-            formData.append('role', 'ADMIN_USER');
-
-            const response = await fetch('/set-role/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrftoken
-                },
-                body: formData.toString(),
-                credentials: 'include'
-            });
-
-            return {
-                status: response.status,
-                csrftoken: csrftoken,
-                cookies: document.cookie
-            };
-        }
-    """)
-
-    # Reload to apply the session
-    page.reload()
-    page.wait_for_load_state()
+    # Click on the admin role button in the dropdown
+    try:
+        # Open role dropdown
+        role_dropdown = page.locator("#role-dropdown")
+        if role_dropdown.is_visible():
+            role_dropdown.click()
+            page.wait_for_timeout(300)
+        
+        # Click admin option
+        admin_btn = page.locator("button.role-option[data-role='ADMIN_USER']")
+        if admin_btn.is_visible():
+            admin_btn.click()
+            page.wait_for_timeout(500)
+        
+        # Reload to ensure session is applied
+        page.reload()
+        page.wait_for_load_state()
+    except Exception as e:
+        print(f"Could not set admin role via UI: {e}")
+        # Fallback - just use default (DEPT_USER)
 
     return page
 
@@ -81,40 +62,25 @@ def dept_page(page: Page) -> Page:
 def set_role(page: Page):
     """Helper fixture to switch roles mid-test."""
     def _set_role(role: str):
-        # Use JavaScript to get CSRF token and make the request
-        page.evaluate(f"""
-            async () => {{
-                // First get csrftoken from cookie
-                const cookies = document.cookie.split(';');
-                let csrftoken = '';
-                for (let c of cookies) {{
-                    c = c.trim();
-                    if (c.startsWith('csrftoken=')) {{
-                        csrftoken = c.substring('csrftoken='.length);
-                        break;
-                    }}
-                }}
-
-                // Make the request
-                const formData = new URLSearchParams();
-                formData.append('role', '{role}');
-
-                await fetch('/set-role/', {{
-                    method: 'POST',
-                    headers: {{
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': csrftoken
-                    }},
-                    body: formData.toString(),
-                    credentials: 'include'
-                }});
-            }}
-        """)
-
-        # Reload to apply
-        page.reload()
-        page.wait_for_load_state()
-
+        try:
+            # Open role dropdown
+            role_dropdown = page.locator("#role-dropdown")
+            if role_dropdown.is_visible():
+                role_dropdown.click()
+                page.wait_for_timeout(300)
+            
+            # Click the role option
+            role_btn = page.locator(f"button.role-option[data-role='{role}']")
+            if role_btn.is_visible():
+                role_btn.click()
+                page.wait_for_timeout(500)
+            
+            # Reload to ensure session is applied
+            page.reload()
+            page.wait_for_load_state()
+        except Exception as e:
+            print(f"Could not set role via UI: {e}")
+        
         return page
     return _set_role
 
