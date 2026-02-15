@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from app.databases.sqlite_db import execute_query
 from app.schemas.course import Course, CourseSearchResponse
@@ -7,14 +8,38 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 
 
 @router.get("/")
-async def search_courses(q: str = Query(None, description="Search query")):
-    """List/search courses."""
+async def search_courses(
+    q: str = Query(None, description="Search query"),
+    field: str = Query("all", description="Search field: all, id, title, department")
+):
+    """List/search courses with optional field filtering."""
+    
+    # Validate field parameter
+    valid_fields = ["all", "id", "title", "department", "system_id"]
+    if field not in valid_fields:
+        field = "all"
+    
     if q:
+        # Build query based on field
+        if field == "all":
+            where_clause = "WHERE id LIKE ? OR title LIKE ? OR department LIKE ? OR system_id LIKE ?"
+            params = [f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%"]
+        elif field == "id":
+            where_clause = "WHERE id LIKE ?"
+            params = [f"%{q}%"]
+        elif field == "title":
+            where_clause = "WHERE title LIKE ?"
+            params = [f"%{q}%"]
+        elif field == "department":
+            where_clause = "WHERE department LIKE ?"
+            params = [f"%{q}%"]
+        elif field == "system_id":
+            where_clause = "WHERE system_id LIKE ?"
+            params = [f"%{q}%"]
+        
         courses_data = await execute_query(
-            """SELECT * FROM courses
-               WHERE id LIKE ? OR title LIKE ? OR department LIKE ? OR system_id LIKE ?
-               ORDER BY id""",
-            [f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%"]
+            f"SELECT * FROM courses {where_clause} ORDER BY id",
+            params
         )
     else:
         courses_data = await execute_query("SELECT * FROM courses ORDER BY id")
