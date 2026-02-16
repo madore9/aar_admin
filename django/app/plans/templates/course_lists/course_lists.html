@@ -1,0 +1,224 @@
+{% extends 'layout.html' %}
+
+{% block title %}Course Lists - AAR Admin{% endblock %}
+
+{% block content %}
+{% include 'partials/tab_nav.html' %}
+
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold text-neutral-900">Course Lists</h1>
+            <p class="text-neutral-500 mt-1">Create and manage reusable course lists for requirements</p>
+        </div>
+        <button onclick="openCreateModal()" class="inline-flex items-center px-4 py-2 bg-[#a51c30] hover:bg-[#801b30] text-white text-sm font-medium rounded-lg transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Create New List
+        </button>
+    </div>
+
+    {% if course_lists %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for cl in course_lists %}
+        <div class="bg-white rounded-lg border border-neutral-200 p-5 hover:shadow-md transition-shadow">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-semibold text-[#a51c30]">{{ cl.name }}</h3>
+                    <p class="text-sm text-neutral-500 mt-1">{{ cl.description|default:"No description" }}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openEditModal('{{ cl.id }}', '{{ cl.name }}', '{{ cl.description|escapejs }}')" 
+                            class="p-1 text-neutral-400 hover:text-[#a51c30] transition-colors" title="Edit">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="confirmDelete('{{ cl.id }}', '{{ cl.name|escapejs }}')" 
+                            class="p-1 text-neutral-400 hover:text-red-600 transition-colors" title="Delete">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <a href="{% url 'course_list_detail' cl.id %}" 
+               class="inline-block mt-4 text-sm text-[#a51c30] hover:underline">
+                View Details →
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12 bg-white rounded-lg border border-neutral-200">
+        <svg class="mx-auto h-12 w-12 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-neutral-900">No course lists yet</h3>
+        <p class="mt-1 text-sm text-neutral-500">Create your first course list to get started.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="course-list-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 z-10">
+            <h3 id="modal-title" class="text-lg font-semibold text-neutral-900 mb-4">Create Course List</h3>
+            <form id="course-list-form">
+                <input type="hidden" id="list-id" value="">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Name</label>
+                    <input type="text" id="list-name" required
+                           class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30]">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Description</label>
+                    <textarea id="list-description" rows="3"
+                              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30]"></textarea>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeModal()" 
+                            class="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-lg hover:bg-neutral-50">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 text-sm font-medium text-white bg-[#a51c30] rounded-lg hover:bg-[#801b30]">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+        <div class="relative bg-white rounded-lg shadow-xl max-w-sm w-full p-6 z-10">
+            <h3 class="text-lg font-semibold text-neutral-900 mb-2">Delete Course List?</h3>
+            <p class="text-neutral-500 mb-4">Are you sure you want to delete <span id="delete-list-name" class="font-medium"></span>? This action cannot be undone.</p>
+            <input type="hidden" id="delete-list-id" value="">
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeDeleteModal()" 
+                        class="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-lg hover:bg-neutral-50">
+                    Cancel
+                </button>
+                <button type="button" onclick="deleteCourseList()" 
+                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
+
+<script>
+function openCreateModal() {
+    document.getElementById('modal-title').textContent = 'Create Course List';
+    document.getElementById('list-id').value = '';
+    document.getElementById('list-name').value = '';
+    document.getElementById('list-description').value = '';
+    document.getElementById('course-list-modal').classList.remove('hidden');
+}
+
+function openEditModal(id, name, description) {
+    document.getElementById('modal-title').textContent = 'Edit Course List';
+    document.getElementById('list-id').value = id;
+    document.getElementById('list-name').value = name;
+    document.getElementById('list-description').value = description || '';
+    document.getElementById('course-list-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('course-list-modal').classList.add('hidden');
+}
+
+function confirmDelete(id, name) {
+    document.getElementById('delete-list-id').value = id;
+    document.getElementById('delete-list-name').textContent = name;
+    document.getElementById('delete-modal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.add('hidden');
+}
+
+document.getElementById('course-list-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('list-id').value;
+    const name = document.getElementById('list-name').value;
+    const description = document.getElementById('list-description').value;
+
+    const url = id ? `/course-lists/api/${id}/update/` : '/course-lists/api/create/';
+    const method = id ? 'PUT' : 'POST';
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ name, description })
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            showToast(data.error || 'Error saving course list', 'error');
+            return;
+        }
+
+        showToast(id ? 'Course list updated' : 'Course list created', 'success');
+        closeModal();
+        setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+        showToast('Error saving course list', 'error');
+    }
+});
+
+async function deleteCourseList() {
+    const id = document.getElementById('delete-list-id').value;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+    try {
+        const response = await fetch(`/course-lists/api/${id}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+
+        if (!response.ok) {
+            showToast('Error deleting course list', 'error');
+            return;
+        }
+
+        showToast('Course list deleted', 'success');
+        closeDeleteModal();
+        setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+        showToast('Error deleting course list', 'error');
+    }
+}
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `px-4 py-3 rounded-lg shadow-lg mb-2 ${
+        type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+    }`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+{% endblock %}

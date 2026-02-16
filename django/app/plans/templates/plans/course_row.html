@@ -1,0 +1,80 @@
+<div class="flex items-center justify-between py-2.5 px-3 border-b border-neutral-100 hover:bg-neutral-50 transition-colors {% if course.is_excluded %}bg-amber-50{% endif %}"
+     data-identifier="{{ course.identifier }}"
+     data-plan-id="{{ plan.id }}"
+     data-req-id="{{ requirement.id }}">
+    <!-- Left side: course info -->
+    <div class="flex items-center space-x-3 min-w-0 flex-1">
+        <!-- System ID badge -->
+        <span class="text-xs font-mono bg-neutral-200 text-neutral-600 px-1.5 py-0.5 rounded flex-shrink-0">
+            {{ course.identifier }}
+        </span>
+
+        {% if course.is_wildcard %}
+        <span class="text-xs font-medium bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded flex-shrink-0">
+            &#x229B; wildcard
+        </span>
+        {% endif %}
+
+        <div class="min-w-0">
+            {% if course.course_info %}
+            <div class="text-sm text-neutral-900 truncate">
+                <span class="font-medium">{{ course.course_info.id }}</span>
+                <span class="text-neutral-400 mx-1">&mdash;</span>
+                {{ course.course_info.title }}
+            </div>
+            <div class="text-xs text-neutral-500 mt-0.5">
+                {{ course.course_info.department }}
+                {% if course.course_info.credits %}
+                &middot; {{ course.course_info.credits }} credits
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-sm text-neutral-600">
+                {{ course.identifier }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right side: actions (ADMIN only) -->
+    {% if user_role == 'ADMIN_USER' %}
+    <div class="flex items-center space-x-2 flex-shrink-0 ml-3">
+        {% if course.validity_type != 'ALWAYS' and course.validity_type %}
+        <span class="text-xs text-amber-600 flex-shrink-0" title="Validity: {{ course.validity_type }}">
+            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            {{ course.validity_type }}
+        </span>
+        {% endif %}
+
+        <!-- Edit Validity button -->
+        <button type="button"
+                class="p-1 text-neutral-400 hover:text-[#a51c30] transition-colors"
+                onclick="openValidityModal('{{ plan.id }}', '{{ requirement.id }}', '{{ course.identifier }}', '{{ course.validity_type }}', '{{ course.valid_terms|default_if_none:"" }}', {{ course.is_wildcard|yesno:'true,false' }})"
+                title="Edit validity">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+        </button>
+
+        <!-- Exclude/Include toggle -->
+        <button type="button"
+                class="text-xs px-2 py-1 rounded transition-colors {% if course.is_excluded %}bg-amber-100 text-amber-700 hover:bg-amber-200{% else %}text-neutral-400 hover:text-amber-600 hover:bg-amber-50{% endif %}"
+                onclick="toggleExclude('{{ plan.id }}', '{{ requirement.id }}', '{{ course.identifier }}', {{ course.is_excluded|yesno:'true,false' }})"
+                title="{% if course.is_excluded %}Include this course{% else %}Exclude this course{% endif %}">
+            {% if course.is_excluded %}Excluded{% else %}Exclude{% endif %}
+        </button>
+
+        <!-- Remove button -->
+        <button type="button"
+                class="p-1 text-neutral-400 hover:text-red-500 transition-colors"
+                onclick="removeCourse('{{ plan.id }}', '{{ requirement.id }}', '{{ course.identifier }}')"
+                title="Remove course">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+        </button>
+    </div>
+    {% endif %}
+</div>

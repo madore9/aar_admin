@@ -1,0 +1,193 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Batch Add Courses - AAR Admin{% endblock %}
+
+{% block content %}
+{% include "partials/tab_nav.html" %}
+
+<h1 class="text-2xl font-semibold text-neutral-900 mb-6">Batch Add Courses</h1>
+
+{% csrf_token %}
+
+<!-- Target Selection Panel -->
+<div class="bg-white rounded-lg border border-neutral-200 p-6 mb-6">
+    <h2 class="text-lg font-medium text-neutral-900 mb-4">Select Target</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label for="batch-plan-select" class="block text-sm font-medium text-neutral-700 mb-1">Plan</label>
+            <select id="batch-plan-select" class="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30]">
+                <option value="">Select a plan...</option>
+                {% for plan in plans %}
+                <option value="{{ plan.id }}">{{ plan.name }} ({{ plan.type }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="batch-req-select" class="block text-sm font-medium text-neutral-700 mb-1">Requirement</label>
+            <select id="batch-req-select" class="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30]" disabled>
+                <option value="">Select a plan first...</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Import Mode</label>
+            <div class="flex gap-4 mt-1">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="import-mode" value="catalog" checked class="text-[#a51c30] focus:ring-[#a51c30]">
+                    <span class="ml-2 text-sm text-neutral-700">Catalog #</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="import-mode" value="id" class="text-[#a51c30] focus:ring-[#a51c30]">
+                    <span class="ml-2 text-sm text-neutral-700">Course ID</span>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Input Panel -->
+<div class="bg-white rounded-lg border border-neutral-200 p-6 mb-6">
+    <div class="border-b border-neutral-200 mb-6">
+        <nav class="flex space-x-1" role="tablist">
+            <button type="button" class="hs-tab-active:border-[#a51c30] hs-tab-active:text-[#a51c30] py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800 active" data-hs-tab="#batch-tab-bulk" aria-selected="true">
+                Bulk Import
+            </button>
+            <button type="button" class="hs-tab-active:border-[#a51c30] hs-tab-active:text-[#a51c30] py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800" data-hs-tab="#batch-tab-search" aria-selected="false">
+                Catalog Search
+            </button>
+        </nav>
+    </div>
+
+    <!-- Tab 1: Bulk Import -->
+    <div id="batch-tab-bulk" role="tabpanel">
+        <div class="space-y-4">
+            <div id="batch-file-drop-zone" class="border-2 border-dashed border-neutral-200 rounded-lg p-8 text-center hover:border-[#a51c30] transition-colors cursor-pointer">
+                <svg class="mx-auto h-12 w-12 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <p class="mt-2 text-sm text-neutral-600">Drag and drop a file here, or click to browse</p>
+                <p class="mt-1 text-xs text-neutral-400">Supports .txt and .csv files</p>
+                <input type="file" id="batch-file-input" class="hidden" accept=".txt,.csv">
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="flex-1 h-px bg-neutral-200"></div>
+                <span class="text-sm text-neutral-400">OR</span>
+                <div class="flex-1 h-px bg-neutral-200"></div>
+            </div>
+
+            <div>
+                <textarea id="batch-text-input" rows="10"
+                    class="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30] font-mono"
+                    placeholder="Paste course identifiers..."></textarea>
+                <p class="mt-1 text-xs text-neutral-500">Enter one per line, or comma-separated</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" id="batch-download-template" class="px-4 py-2 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors">
+                    Download Template
+                </button>
+                <button type="button" id="batch-validate-btn" class="px-4 py-2 bg-[#a51c30] hover:bg-[#801b30] text-white rounded-lg text-sm font-medium transition-colors">
+                    Validate Input
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Catalog Search -->
+    <div id="batch-tab-search" class="hidden" role="tabpanel">
+        <div class="space-y-4">
+            <input type="text" id="batch-catalog-search"
+                class="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30]"
+                placeholder="Search courses by ID, title, or department...">
+            <div id="batch-search-results" class="border border-neutral-200 rounded-lg max-h-64 overflow-y-auto">
+                <div class="p-4 text-sm text-neutral-500 text-center">Search for courses to stage</div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Staged Courses</label>
+                <div id="batch-staged-courses" class="flex flex-wrap gap-2 min-h-[40px] p-2 border border-neutral-200 rounded-lg">
+                    <span class="text-sm text-neutral-400" id="batch-staged-placeholder">No courses staged</span>
+                </div>
+            </div>
+            <button type="button" id="batch-stage-validate" class="px-4 py-2 bg-[#a51c30] hover:bg-[#801b30] text-white rounded-lg text-sm font-medium transition-colors">
+                Stage for Validation
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Results Panel -->
+<div id="batch-results" class="bg-white rounded-lg border border-neutral-200 p-6 mb-6 hidden">
+    <h2 class="text-lg font-medium text-neutral-900 mb-4">Validation Results</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-neutral-100 rounded-lg p-4">
+            <p class="text-sm text-neutral-500">Total</p>
+            <p class="text-2xl font-semibold text-neutral-900" id="stat-total">0</p>
+        </div>
+        <div class="bg-green-100 rounded-lg p-4">
+            <p class="text-sm text-green-700">New Matches</p>
+            <p class="text-2xl font-semibold text-green-700" id="stat-matched">0</p>
+        </div>
+        <div class="bg-amber-100 rounded-lg p-4">
+            <p class="text-sm text-amber-700">Already in List</p>
+            <p class="text-2xl font-semibold text-amber-700" id="stat-duplicates">0</p>
+        </div>
+        <div class="bg-red-100 rounded-lg p-4">
+            <p class="text-sm text-red-700">Needs Review</p>
+            <p class="text-2xl font-semibold text-red-700" id="stat-needs-review">0</p>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto mb-6">
+        <table class="min-w-full divide-y divide-neutral-200">
+            <thead class="bg-neutral-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Input</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Course Info</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="batch-results-body" class="bg-white divide-y divide-neutral-200"></tbody>
+        </table>
+    </div>
+
+    <div class="flex gap-3 justify-end">
+        <button type="button" id="batch-reset" class="px-4 py-2 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors">
+            Reset
+        </button>
+        <button type="button" id="batch-add-valid" class="px-4 py-2 bg-[#a51c30] hover:bg-[#801b30] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Add 0 Valid Matches
+        </button>
+    </div>
+</div>
+
+<!-- Resolution Modal -->
+<div id="batch-resolve-modal" class="hidden fixed inset-0 z-[60] overflow-y-auto">
+    <div class="fixed inset-0 bg-neutral-900/50"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-neutral-900">Resolve: <span id="brm-input"></span></h3>
+                <button type="button" id="batch-resolve-close" class="text-neutral-400 hover:text-neutral-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="batch-resolve-candidates" class="space-y-2 max-h-80 overflow-y-auto mb-4"></div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" id="batch-resolve-cancel" class="px-4 py-2 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50">Cancel</button>
+                <button type="button" id="batch-resolve-confirm" class="px-4 py-2 bg-[#a51c30] hover:bg-[#801b30] text-white rounded-lg text-sm font-medium">Confirm Selection</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.allCourses = [{% for c in all_courses %}{"system_id":"{{ c.system_id }}","id":"{{ c.id }}","title":"{{ c.title|escapejs }}","department":"{{ c.department|escapejs }}","credits":{{ c.credits }}}{% if not forloop.last %},{% endif %}{% endfor %}];
+</script>
+<script src="{% static 'js/batch.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends 'layout.html' %}
+
+{% block title %}{{ course_list.name }} - Course Lists - AAR Admin{% endblock %}
+
+{% block content %}
+{% include 'partials/tab_nav.html' %}
+
+<div class="max-w-7xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'course_lists' %}" class="text-[#a51c30] hover:underline flex items-center gap-1 text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Course Lists
+        </a>
+    </div>
+
+    {% if course_list %}
+    <div class="bg-white rounded-lg border border-neutral-200 p-6">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-2xl font-semibold text-neutral-900">{{ course_list.name }}</h1>
+                <p class="text-neutral-500 mt-1">{{ course_list.description|default:"No description" }}</p>
+            </div>
+            <button onclick="openAddCoursesModal()" class="inline-flex items-center px-4 py-2 bg-[#a51c30] hover:bg-[#801b30] text-white text-sm font-medium rounded-lg transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Courses
+            </button>
+        </div>
+
+        <!-- Courses in List -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-neutral-900 mb-4">Courses in List</h2>
+            {% if course_list.courses %}
+            <div class="border border-neutral-200 rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-neutral-200">
+                    <thead class="bg-neutral-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Identifier</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Type</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-neutral-200">
+                        {% for course in course_list.courses %}
+                        <tr>
+                            <td class="px-4 py-3 font-mono text-sm">{{ course.identifier }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                {% if course.is_wildcard %}
+                                <span class="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded">Wildcard</span>
+                                {% else %}
+                                <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">Specific</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <button onclick="removeCourse('{{ course.identifier }}')" 
+                                        class="text-red-600 hover:text-red-800 text-sm">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-neutral-500 text-sm">No courses in this list yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Usage in Plans -->
+        {% if usage %}
+        <div>
+            <h2 class="text-lg font-semibold text-neutral-900 mb-4">Used in Plans</h2>
+            <div class="border border-neutral-200 rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-neutral-200">
+                    <thead class="bg-neutral-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Plan</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Type</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Requirement</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-neutral-200">
+                        {% for u in usage %}
+                        <tr>
+                            <td class="px-4 py-3 text-sm">{{ u.plan_name }}</td>
+                            <td class="px-4 py-3 text-sm text-neutral-500">{{ u.plan_type }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                <a href="/plans/{{ u.plan_id }}/" class="text-[#a51c30] hover:underline">{{ u.req_title }}</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="text-center py-12 bg-white rounded-lg border border-neutral-200">
+        <p class="text-neutral-500">Course list not found.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Courses Modal -->
+<div id="add-courses-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+        <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 z-10">
+            <h3 class="text-lg font-semibold text-neutral-900 mb-4">Add Courses to List</h3>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Search Courses</label>
+                <input type="text" id="course-search-input" placeholder="Search by ID, title, or department..."
+                       class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30]">
+            </div>
+
+            <div id="search-results" class="max-h-64 overflow-y-auto border border-neutral-200 rounded-lg mb-4 hidden">
+                <!-- Results populated by JS -->
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Or enter identifiers (one per line)</label>
+                <textarea id="course-identifiers" rows="4" placeholder="CS50&#10;MATH21a&#10;100201"
+                          class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30] font-mono text-sm"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeAddCoursesModal()" 
+                        class="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-lg hover:bg-neutral-50">
+                    Cancel
+                </button>
+                <button type="button" onclick="addCourses()" 
+                        class="px-4 py-2 text-sm font-medium text-white bg-[#a51c30] rounded-lg hover:bg-[#801b30]">
+                    Add Courses
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
+
+<script>
+const courseListId = "{{ course_list.id }}";
+const allCourses = {{ all_courses|safe }};
+
+function openAddCoursesModal() {
+    document.getElementById('add-courses-modal').classList.remove('hidden');
+    document.getElementById('course-search-input').value = '';
+    document.getElementById('course-identifiers').value = '';
+    document.getElementById('search-results').classList.add('hidden');
+}
+
+function closeAddCoursesModal() {
+    document.getElementById('add-courses-modal').classList.add('hidden');
+}
+
+// Search functionality
+document.getElementById('course-search-input').addEventListener('input', debounce(async (e) => {
+    const query = e.target.value.toLowerCase();
+    if (query.length < 2) {
+        document.getElementById('search-results').classList.add('hidden');
+        return;
+    }
+
+    const results = allCourses.filter(c => 
+        c.id.toLowerCase().includes(query) ||
+        c.title.toLowerCase().includes(query) ||
+        c.department.toLowerCase().includes(query)
+    ).slice(0, 10);
+
+    const container = document.getElementById('search-results');
+    if (results.length > 0) {
+        container.innerHTML = results.map(c => `
+            <div class="px-4 py-2 hover:bg-neutral-50 cursor-pointer flex justify-between items-center" 
+                 onclick="addCourseToStaging('${c.system_id}', '${c.id}')">
+                <div>
+                    <span class="font-mono font-medium">${c.id}</span>
+                    <span class="text-neutral-500"> - ${c.title}</span>
+                </div>
+                <span class="text-xs text-neutral-400">${c.department}</span>
+            </div>
+        `).join('');
+        container.classList.remove('hidden');
+    } else {
+        container.innerHTML = '<div class="px-4 py-3 text-neutral-500 text-sm">No courses found</div>';
+        container.classList.remove('hidden');
+    }
+}, 300));
+
+function addCourseToStaging(systemId, courseId) {
+    const textarea = document.getElementById('course-identifiers');
+    const current = textarea.value.trim();
+    textarea.value = current ? current + '\n' + courseId : courseId;
+    document.getElementById('search-results').classList.add('hidden');
+    document.getElementById('course-search-input').value = '';
+}
+
+async function addCourses() {
+    const identifiers = document.getElementById('course-identifiers').value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s);
+
+    if (identifiers.length === 0) {
+        showToast('Please enter at least one course identifier', 'error');
+        return;
+    }
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+    const courses = identifiers.map(id => ({
+        identifier: id,
+        is_wildcard: id.includes('*') || id.includes('#')
+    }));
+
+    try {
+        const response = await fetch(`/course-lists/api/${courseListId}/courses/add/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ courses })
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            showToast(data.error || 'Error adding courses', 'error');
+            return;
+        }
+
+        showToast('Courses added successfully', 'success');
+        closeAddCoursesModal();
+        setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+        showToast('Error adding courses', 'error');
+    }
+}
+
+async function removeCourse(identifier) {
+    if (!confirm(`Remove ${identifier} from this list?`)) return;
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+    try {
+        const response = await fetch(`/course-lists/api/${courseListId}/courses/${encodeURIComponent(identifier)}/remove/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+
+        if (!response.ok) {
+            showToast('Error removing course', 'error');
+            return;
+        }
+
+        showToast('Course removed', 'success');
+        setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+        showToast('Error removing course', 'error');
+    }
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `px-4 py-3 rounded-lg shadow-lg mb-2 ${
+        type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+    }`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+{% endblock %}

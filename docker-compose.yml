@@ -1,0 +1,27 @@
+services:
+  aar-api:
+    build: ./fastapi
+    ports:
+      - "9223:9223"
+    volumes:
+      - api-data:/app/data
+    environment:
+      - AAR_ENV=local
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9223/healthCheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  aar-django:
+    build: ./django
+    ports:
+      - "8000:8000"
+    depends_on:
+      - aar-api
+    environment:
+      - DJANGO_SETTINGS_MODULE=aar_admin.settings_local
+      - AAR_API_BASE_URL=http://aar-api:9223
+
+volumes:
+  api-data:

@@ -1,0 +1,102 @@
+<header class="sticky top-0 w-full bg-neutral-900 z-50">
+{% csrf_token %}
+    <nav class="max-w-7xl w-full mx-auto flex items-center justify-between px-4 md:px-8 py-2">
+        <!-- Left: Brand -->
+        <a href="/" class="flex items-center gap-3 text-white no-underline">
+            <!-- Harvard Shield SVG -->
+            <svg width="28" height="32" viewBox="0 0 28 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 0L0 6v10c0 8.84 5.98 17.08 14 20 8.02-2.92 14-11.16 14-20V6L14 0z" fill="#a51c30"/>
+                <text x="14" y="22" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="serif">H</text>
+            </svg>
+            <span class="text-lg font-semibold tracking-tight">AAR Admin</span>
+        </a>
+
+        <!-- Right: Role Switcher + User -->
+        <div class="flex items-center gap-4">
+            <!-- Role Switcher Dropdown (Preline) -->
+            <div class="hs-dropdown relative inline-flex">
+                <button id="role-dropdown" type="button"
+                    class="hs-dropdown-toggle inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+                           {% if user_role == 'ADMIN_USER' %}bg-myh-700 text-white{% else %}bg-neutral-700 text-neutral-200{% endif %}
+                           hover:opacity-90 transition-opacity"
+                    aria-haspopup="menu" aria-expanded="false" aria-label="Switch role">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <span id="role-label">{{ user_role|default:"DEPT_USER" }}</span>
+                    <svg class="hs-dropdown-open:rotate-180 w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden
+                            min-w-48 bg-white shadow-md rounded-lg mt-2 z-50 border border-neutral-200"
+                     role="menu" aria-orientation="vertical" aria-labelledby="role-dropdown">
+                    <div class="p-1">
+                        <button type="button"
+                                class="role-option flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-neutral-800 hover:bg-myh-50 hover:text-myh-700 transition-colors"
+                                data-role="ADMIN_USER">
+                            <svg class="w-4 h-4 text-myh-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            ADMIN_USER
+                        </button>
+                        <button type="button"
+                                class="role-option flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-neutral-800 hover:bg-myh-50 hover:text-myh-700 transition-colors"
+                                data-role="DEPT_USER">
+                            <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            DEPT_USER
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Avatar -->
+            <div class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-white text-xs font-medium">
+                U
+            </div>
+        </div>
+    </nav>
+</header>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.role-option').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const role = this.dataset.role;
+            fetch('/set-role/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: 'role=' + encodeURIComponent(role),
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('role-label').textContent = data.role;
+                window.location.reload();
+            });
+        });
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>

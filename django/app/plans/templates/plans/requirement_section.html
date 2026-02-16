@@ -1,0 +1,100 @@
+<div class="bg-white rounded-lg border border-neutral-200 mb-4" data-req-section="{{ requirement.id }}">
+    <!-- Header (always visible) -->
+    <div class="flex items-center justify-between px-4 py-3">
+        <div class="flex items-center space-x-3">
+            <!-- Book icon -->
+            <svg class="w-5 h-5 text-neutral-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+            <h3 class="font-semibold text-neutral-900">{{ requirement.title }}</h3>
+            {% if user_role == 'ADMIN_USER' %}
+            <button type="button"
+                    onclick="openEditRequirementModal('{{ plan.id }}', '{{ requirement.id }}', '{{ requirement.title|escapejs }}', '{{ requirement.description|escapejs }}', {{ requirement.required_courses_count|default:'0' }}, {{ requirement.required_units|default:'0' }}, '{{ requirement.minimum_gpa|default_if_none:"" }}')"
+                    class="text-neutral-400 hover:text-[#a51c30] transition-colors" title="Edit requirement">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                </svg>
+            </button>
+            {% endif %}
+        </div>
+        <div class="flex items-center space-x-2">
+            {% if user_role == 'ADMIN_USER' %}
+            <button type="button"
+                    onclick="openAddCourseModal('{{ plan.id }}', '{{ requirement.id }}', '{{ requirement.title|escapejs }}')"
+                    class="inline-flex items-center px-3 py-1.5 border border-[#a51c30] text-[#a51c30] text-xs font-medium rounded-lg hover:bg-[#fde6e6] transition-colors">
+                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Courses
+            </button>
+            {% endif %}
+            <!-- Collapse toggle -->
+            <button type="button"
+                    class="hs-collapse-toggle p-1 text-neutral-400 hover:text-neutral-600 transition-colors"
+                    data-hs-collapse="#req-{{ requirement.id }}">
+                <svg class="w-5 h-5 hs-collapse-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Badges row -->
+    <div class="flex flex-wrap gap-2 px-4 pb-3">
+        {% if requirement.required_courses_count %}
+        <span class="inline-flex items-center bg-neutral-100 text-neutral-700 text-xs px-2 py-1 rounded">
+            Min. Courses: {{ requirement.required_courses_count }}
+        </span>
+        {% endif %}
+        {% if requirement.required_units %}
+        <span class="inline-flex items-center bg-neutral-100 text-neutral-700 text-xs px-2 py-1 rounded">
+            Min. Units: {{ requirement.required_units }}
+        </span>
+        {% endif %}
+        {% if requirement.minimum_gpa %}
+        <span class="inline-flex items-center bg-neutral-100 text-neutral-700 text-xs px-2 py-1 rounded">
+            Min. GPA: {{ requirement.minimum_gpa }}
+        </span>
+        {% endif %}
+    </div>
+
+    <!-- Collapsible body -->
+    <div id="req-{{ requirement.id }}" class="hs-collapse hidden">
+        <div class="border-t border-neutral-200">
+            {% if requirement.courses %}
+                {% for course in requirement.courses %}
+                    {% include 'plans/course_row.html' with course=course plan=plan requirement=requirement %}
+                {% endfor %}
+            {% else %}
+            <div class="px-4 py-6 text-center text-neutral-400 text-sm">
+                No courses assigned yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pending changes footer (hidden by default) -->
+    <div class="hidden border-t border-neutral-200 bg-neutral-50 px-4 py-3 rounded-b-lg"
+         data-changes-footer="{{ plan.id }}|{{ requirement.id }}">
+        <div class="flex items-center justify-between">
+            <span class="text-sm text-neutral-600">You have unsaved changes</span>
+            <div class="flex items-center space-x-2">
+                <button type="button"
+                        onclick="discardDraft('{{ plan.id }}', '{{ requirement.id }}')"
+                        class="text-sm text-neutral-500 hover:text-neutral-700 transition-colors">
+                    Cancel
+                </button>
+                <button type="button"
+                        onclick="saveDraft('{{ plan.id }}', '{{ requirement.id }}')"
+                        class="inline-flex items-center px-3 py-1.5 border border-neutral-300 text-sm font-medium text-neutral-700 bg-white rounded-lg hover:bg-neutral-50 transition-colors">
+                    Save Draft
+                </button>
+                <button type="button"
+                        onclick="saveChanges('{{ plan.id }}', '{{ requirement.id }}')"
+                        class="inline-flex items-center px-3 py-1.5 bg-[#a51c30] hover:bg-[#801b30] text-white text-sm font-medium rounded-lg transition-colors">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

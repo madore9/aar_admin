@@ -1,0 +1,173 @@
+{% load static %}
+
+<!-- Audit Log / History Modal -->
+<div id="history-modal" class="hs-overlay hidden w-full h-full fixed top-0 left-0 z-[60] overflow-x-hidden overflow-y-auto">
+  <div class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-300 mt-0 opacity-0 transition-all max-w-lg w-full mx-auto min-h-[calc(100%-3.5rem)] flex items-center justify-center my-7">
+    <div class="flex flex-col bg-white rounded-xl shadow-lg w-full max-h-[80vh]">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
+        <div class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-[#a51c30]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h3 class="text-lg font-semibold text-neutral-800">Audit Log</h3>
+        </div>
+        <button type="button" class="flex justify-center items-center w-8 h-8 text-neutral-400 hover:text-neutral-600 rounded-full hover:bg-neutral-100 transition-colors" data-hs-overlay="#history-modal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="px-6 py-4 overflow-y-auto max-h-[60vh]">
+        <!-- Loading State -->
+        <div id="history-modal-loading" class="hidden flex flex-col items-center justify-center py-8">
+          <div class="w-8 h-8 border-4 border-[#a51c30] border-t-transparent rounded-full animate-spin"></div>
+          <p class="mt-2 text-sm text-neutral-500">Loading audit log...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="history-modal-empty" class="hidden flex flex-col items-center justify-center py-8">
+          <svg class="w-12 h-12 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <p class="mt-2 text-sm text-neutral-500">No audit log entries for this plan</p>
+        </div>
+
+        <!-- Entries List (Timeline) -->
+        <div id="history-modal-entries" class="hidden">
+          <div class="relative border-l-2 border-[#a51c30]/30 ml-3 space-y-6">
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-end px-6 py-4 border-t border-neutral-200 bg-neutral-50 rounded-b-xl">
+        <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-[#a51c30] hover:bg-[#801b30] rounded-lg transition-colors" data-hs-overlay="#history-modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  function formatTimestamp(timestamp) {
+    const now = new Date();
+    const date = new Date(timestamp);
+    const diffMs = now - date;
+    const diffHours = diffMs / (1000 * 60 * 60);
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+    if (diffHours < 1) {
+      const minutes = Math.floor(diffMs / (1000 * 60));
+      return minutes <= 1 ? 'Just now' : minutes + ' minutes ago';
+    } else if (diffHours < 24) {
+      const hours = Math.floor(diffHours);
+      return hours === 1 ? '1 hour ago' : hours + ' hours ago';
+    } else if (diffDays < 2) {
+      return 'Yesterday at ' + formatTime(date);
+    } else {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear() + ' at ' + formatTime(date);
+    }
+  }
+
+  function formatTime(date) {
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+    return hours + ':' + minutesStr + ' ' + ampm;
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function renderEntries(entries) {
+    const entriesContainer = document.querySelector('#history-modal-entries .border-l-2');
+    const loadingEl = document.getElementById('history-modal-loading');
+    const emptyEl = document.getElementById('history-modal-empty');
+    const entriesEl = document.getElementById('history-modal-entries');
+
+    loadingEl.classList.add('hidden');
+
+    if (!entries || entries.length === 0) {
+      emptyEl.classList.remove('hidden');
+      entriesEl.classList.add('hidden');
+      return;
+    }
+
+    emptyEl.classList.add('hidden');
+    entriesEl.classList.remove('hidden');
+
+    entriesContainer.innerHTML = entries.map(entry => {
+      const isAdmin = entry.user === 'ADMIN_USER';
+      const badgeClass = isAdmin ? 'bg-[#a51c30] text-white' : 'bg-neutral-200 text-neutral-700';
+      const badgeLabel = isAdmin ? 'Admin' : 'Dept';
+      const timestamp = formatTimestamp(entry.timestamp);
+
+      return `
+        <div class="relative pl-6">
+          <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#a51c30] border-2 border-white ring-2 ring-[#a51c30]/30"></div>
+          <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 p-3 bg-neutral-50 rounded-lg">
+            <div class="flex-shrink-0 w-36">
+              <span class="text-xs font-medium text-neutral-500">${escapeHtml(timestamp)}</span>
+            </div>
+            <div class="flex-shrink-0">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${badgeClass}">
+                ${badgeLabel}
+              </span>
+            </div>
+            <div class="flex-grow">
+              <p class="text-sm text-neutral-700">${escapeHtml(entry.action || 'No action description')}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.openHistoryModal = function(planId) {
+    const modal = document.getElementById('history-modal');
+    const loadingEl = document.getElementById('history-modal-loading');
+    const emptyEl = document.getElementById('history-modal-empty');
+    const entriesEl = document.getElementById('history-modal-entries');
+    const entriesContainer = document.querySelector('#history-modal-entries .border-l-2');
+
+    loadingEl.classList.remove('hidden');
+    emptyEl.classList.add('hidden');
+    entriesEl.classList.add('hidden');
+    entriesContainer.innerHTML = '';
+
+    if (window.HSOverlay) {
+      HSOverlay.open(modal);
+    } else {
+      modal.classList.remove('hidden');
+    }
+
+    fetch('/api/audit-log/' + planId + '/')
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch audit log');
+        return response.json();
+      })
+      .then(data => {
+        renderEntries(data.entries || []);
+      })
+      .catch(error => {
+        console.error('Error fetching audit log:', error);
+        loadingEl.classList.add('hidden');
+        emptyEl.classList.remove('hidden');
+      });
+  };
+})();
+</script>
