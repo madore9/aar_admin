@@ -1,0 +1,13 @@
+# External repositories (separate git repos)
+aar_admin_django/
+
+# External/project directories
+google_version/
+myharvard-main/
+myharvard-ui-main/
+myharvardapi-main/
+ralph_minimax/
+
+# Editor and system files
+.vscode/
+.DS_Store
