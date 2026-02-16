@@ -93,6 +93,7 @@ async def set_role(request):
     return JsonResponse({'role': role})
 
 
+@require_admin
 async def api_search_courses(request):
     """AJAX endpoint for course search autocomplete."""
     q = request.GET.get('q', '')
@@ -102,6 +103,7 @@ async def api_search_courses(request):
     return JsonResponse(courses_data)
 
 
+@require_admin
 async def api_get_course_list_detail(request, list_id):
     """AJAX endpoint to get course list with its courses."""
     result = await get_course_list_detail(list_id)
@@ -110,6 +112,7 @@ async def api_get_course_list_detail(request, list_id):
     return JsonResponse(result)
 
 
+@require_admin
 @require_admin
 async def api_add_requirement(request, plan_id):
     """Add a new requirement to a plan."""
@@ -187,6 +190,7 @@ async def api_get_audit_log(request, plan_id):
     return JsonResponse({'entries': result or []})
 
 
+@require_admin
 async def export_plan_csv(request, plan_id):
     """Export plan requirements and courses as CSV."""
     from plans.services.plan_service import get_plan_with_course_info

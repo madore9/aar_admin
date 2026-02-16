@@ -1,4 +1,5 @@
 {% load static %}
+{% csrf_token %}
 <header class="sticky top-0 xl:relative flex flex-wrap lg:justify-start lg:flex-nowrap w-full bg-[#1a1a1a] z-[55]">
     <div class="w-full flex flex-wrap gap-x-2 2xl:gap-x-8 items-center justify-between px-4 md:ps-8 md:pe-7 py-2">
         <!-- Left: Logo -->
@@ -26,15 +27,15 @@
             <!-- End Ideas -->
 
             <!-- User Account Dropdown -->
-            <div class="hs-dropdown relative inline-flex [--strategy:absolute] [--auto-close:inside] [--placement:bottom-right]">
-                <button type="button" data-hs-dropdown-toggle class="ms-2 inline-flex items-center gap-x-1 text-sm font-medium rounded-full border border-transparent text-white disabled:opacity-75 !disabled:pointer-events-none" aria-haspopup="true" aria-expanded="false" aria-label="Open User Account Navigation">
+            <div class="hs-dropdown relative inline-flex [--strategy:absolute] [--auto-close:inside] [--placement:bottom-right]" id="user-dropdown-container">
+                <button type="button" id="user-dropdown-toggle" class="ms-2 inline-flex items-center gap-x-1 text-sm font-medium rounded-full border border-transparent text-white disabled:opacity-75 !disabled:pointer-events-none" aria-haspopup="true" aria-expanded="false" aria-label="Open User Account Navigation">
                     <span class="inline-flex items-center justify-center size-7 xl:w-10 xl:h-10 text-xs md:text-sm font-semibold leading-none rounded-full bg-primary-light text-primary">
                         {{ user_role|default:"U"|slice:":1" }}
                     </span>
                 </button>
 
                 <!-- Account Dropdown -->
-                <div class="hs-dropdown-menu hs-dropdown-open:opacity-100 text-sm start-2.5 w-68 max-h-[80vh] overflow-y-auto transition-[opacity,margin] duration opacity-0 hidden z-50 bg-white p-4 rounded-lg md:rounded-xl shadow-md" role="region" aria-label="User Account Navigation">
+                <div id="user-dropdown-menu" class="hs-dropdown-menu text-sm start-2.5 w-68 max-h-[80vh] overflow-y-auto transition-[opacity,margin] duration opacity-0 invisible z-50 bg-white p-4 rounded-lg md:rounded-xl shadow-md" role="region" aria-label="User Account Navigation">
                     <!-- User Info -->
                     <div class="flex items-center gap-x-3 rounded-lg mb-3">
                         <div class="shrink-0">
@@ -105,6 +106,40 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // User dropdown toggle functionality
+    const dropdownToggle = document.getElementById('user-dropdown-toggle');
+    const dropdownMenu = document.getElementById('user-dropdown-menu');
+    const dropdownContainer = document.getElementById('user-dropdown-container');
+
+    if (dropdownToggle && dropdownMenu) {
+        dropdownToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = !dropdownMenu.classList.contains('invisible');
+
+            if (isOpen) {
+                // Close dropdown
+                dropdownMenu.classList.add('invisible', 'opacity-0');
+                dropdownMenu.classList.remove('opacity-100', 'visible');
+                dropdownToggle.setAttribute('aria-expanded', 'false');
+            } else {
+                // Open dropdown
+                dropdownMenu.classList.remove('invisible', 'opacity-0');
+                dropdownMenu.classList.add('opacity-100', 'visible');
+                dropdownToggle.setAttribute('aria-expanded', 'true');
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!dropdownContainer.contains(e.target)) {
+                dropdownMenu.classList.add('invisible', 'opacity-0');
+                dropdownMenu.classList.remove('opacity-100', 'visible');
+                dropdownToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
     // Role switcher functionality
     document.querySelectorAll('.role-option').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
