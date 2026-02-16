@@ -27,7 +27,7 @@
             <!-- End Ideas -->
 
             <!-- User Account Dropdown -->
-            <div class="hs-dropdown relative inline-flex [--strategy:absolute] [--auto-close:inside] [--placement:bottom-right]" id="user-dropdown-container" style="position: relative;">
+            <div class="hs-dropdown relative inline-flex [--placement:top-end]" id="user-dropdown-container">
                 <button type="button" id="user-dropdown-toggle" class="ms-2 inline-flex items-center gap-x-1 text-sm font-medium rounded-full border border-transparent text-white disabled:opacity-75 !disabled:pointer-events-none" aria-haspopup="true" aria-expanded="false" aria-label="Open User Account Navigation">
                     <span class="inline-flex items-center justify-center size-7 xl:w-10 xl:h-10 text-xs md:text-sm font-semibold leading-none rounded-full bg-primary-light text-primary">
                         {{ user_role|default:"U"|slice:":1" }}
@@ -35,7 +35,7 @@
                 </button>
 
                 <!-- Account Dropdown -->
-                <div id="user-dropdown-menu" class="hs-dropdown-menu absolute end-0 text-sm w-68 max-h-[80vh] overflow-y-auto transition-[opacity,margin] duration opacity-0 invisible z-50 bg-white p-4 rounded-lg md:rounded-xl shadow-md" role="region" aria-label="User Account Navigation">
+                <div id="user-dropdown-menu" class="hs-dropdown-menu hs-dropdown-open:opacity-100 start-2.5 w-64 transition-[opacity,margin] duration opacity-0 hidden z-50 bg-white p-4 rounded-lg md:rounded-xl shadow-md" role="region" aria-label="User Account Navigation">
                     <!-- User Info -->
                     <div class="flex items-center gap-x-3 rounded-lg mb-3">
                         <div class="shrink-0">
@@ -115,17 +115,17 @@ document.addEventListener('DOMContentLoaded', function() {
         dropdownToggle.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            const isOpen = !dropdownMenu.classList.contains('invisible');
+            const isOpen = !dropdownMenu.classList.contains('hidden');
 
             if (isOpen) {
                 // Close dropdown
-                dropdownMenu.classList.add('invisible', 'opacity-0');
-                dropdownMenu.classList.remove('opacity-100', 'visible');
+                dropdownMenu.classList.add('hidden', 'opacity-0');
+                dropdownMenu.classList.remove('opacity-100');
                 dropdownToggle.setAttribute('aria-expanded', 'false');
             } else {
                 // Open dropdown
-                dropdownMenu.classList.remove('invisible', 'opacity-0');
-                dropdownMenu.classList.add('opacity-100', 'visible');
+                dropdownMenu.classList.remove('hidden', 'opacity-0');
+                dropdownMenu.classList.add('opacity-100');
                 dropdownToggle.setAttribute('aria-expanded', 'true');
             }
         });
@@ -133,8 +133,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!dropdownContainer.contains(e.target)) {
-                dropdownMenu.classList.add('invisible', 'opacity-0');
-                dropdownMenu.classList.remove('opacity-100', 'visible');
+                dropdownMenu.classList.add('hidden', 'opacity-0');
+                dropdownMenu.classList.remove('opacity-100');
                 dropdownToggle.setAttribute('aria-expanded', 'false');
             }
         });
