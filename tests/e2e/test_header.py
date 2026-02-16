@@ -155,6 +155,9 @@ def test_user_dropdown_has_settings(page: Page):
     settings = page.locator("a:has-text('Settings')")
     expect(settings).to_be_visible()
 
+    # Verify settings link points to Django admin
+    expect(settings).to_have_attribute("href", "/admin/")
+
 
 def test_ideas_icon_visible(page: Page):
     """Test that the Ideas icon is visible in the header."""
@@ -166,14 +169,14 @@ def test_ideas_icon_visible(page: Page):
     expect(ideas_button).to_be_visible()
 
 
-def test_center_nav_has_course_search(page: Page):
-    """Test that the center navigation has Course Search link."""
+def test_center_nav_has_aar_admin(page: Page):
+    """Test that the center navigation has AAR Admin link."""
     page.goto("http://localhost:8000/")
     page.wait_for_load_state()
 
-    # Check Course Search link is visible
-    course_search = page.locator("a.nav-links:has-text('Course Search')")
-    expect(course_search).to_be_visible()
+    # Check AAR Admin link is visible
+    aar_admin = page.locator("a.nav-links:has-text('AAR Admin')")
+    expect(aar_admin).to_be_visible()
 
 
 def test_role_switch_updates_page_content(page: Page):
