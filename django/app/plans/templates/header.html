@@ -27,7 +27,7 @@
             <!-- End Ideas -->
 
             <!-- User Account Dropdown -->
-            <div class="hs-dropdown relative inline-flex [--strategy:absolute] [--auto-close:inside] [--placement:bottom-right]" id="user-dropdown-container">
+            <div class="hs-dropdown relative inline-flex [--strategy:absolute] [--auto-close:inside] [--placement:bottom-right]" id="user-dropdown-container" style="position: relative;">
                 <button type="button" id="user-dropdown-toggle" class="ms-2 inline-flex items-center gap-x-1 text-sm font-medium rounded-full border border-transparent text-white disabled:opacity-75 !disabled:pointer-events-none" aria-haspopup="true" aria-expanded="false" aria-label="Open User Account Navigation">
                     <span class="inline-flex items-center justify-center size-7 xl:w-10 xl:h-10 text-xs md:text-sm font-semibold leading-none rounded-full bg-primary-light text-primary">
                         {{ user_role|default:"U"|slice:":1" }}
@@ -35,7 +35,7 @@
                 </button>
 
                 <!-- Account Dropdown -->
-                <div id="user-dropdown-menu" class="hs-dropdown-menu text-sm start-2.5 w-68 max-h-[80vh] overflow-y-auto transition-[opacity,margin] duration opacity-0 invisible z-50 bg-white p-4 rounded-lg md:rounded-xl shadow-md" role="region" aria-label="User Account Navigation">
+                <div id="user-dropdown-menu" class="hs-dropdown-menu absolute end-0 text-sm w-68 max-h-[80vh] overflow-y-auto transition-[opacity,margin] duration opacity-0 invisible z-50 bg-white p-4 rounded-lg md:rounded-xl shadow-md" role="region" aria-label="User Account Navigation">
                     <!-- User Info -->
                     <div class="flex items-center gap-x-3 rounded-lg mb-3">
                         <div class="shrink-0">
@@ -96,7 +96,7 @@
             <div id="header-nav" class="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow lg:block">
                 <nav aria-label="Header Navigation">
                     <ul class="grid lg:flex lg:items-center lg:justify-center lg:gap-y-0 xl:gap-x-3 pt-2 lg:pt-0">
-                        <li><a class="nav-links" href="/">Course Search</a></li>
+                        <li><a class="nav-links" href="/">AAR Admin</a></li>
                     </ul>
                 </nav>
             </div>
