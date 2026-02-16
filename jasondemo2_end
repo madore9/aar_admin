@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+#
+# jasondemo2_end - Stop AAR Admin demo environment
+# Kills all processes started by jasondemo2
+#
+# Usage: ./jasondemo2_end
+#
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+PID_FILE="/tmp/jasondemo2_pids.txt"
+
+echo -e "${YELLOW}=== Stopping AAR Admin Demo (jasondemo2_end) ===${NC}"
+
+# Kill processes from PID file
+if [ -f "$PID_FILE" ]; then
+    echo -e "\n${YELLOW}Stopping servers from PID file...${NC}"
+    while read pid; do
+        if kill -0 "$pid" 2>/dev/null; then
+            echo -n "Stopping PID $pid... "
+            kill "$pid" 2>/dev/null
+            # Wait a moment for graceful shutdown
+            sleep 1
+            # Force kill if still running
+            if kill -0 "$pid" 2>/dev/null; then
+                kill -9 "$pid" 2>/dev/null
+            fi
+            echo -e "${GREEN}Stopped${NC}"
+        fi
+    done < "$PID_FILE"
+    rm -f "$PID_FILE"
+else
+    echo -e "${YELLOW}No PID file found.${NC}"
+fi
+
+# Also try to kill by port as fallback
+echo -e "\n${YELLOW}Checking for processes on ports 8000 and 9223...${NC}"
+
+# Kill Django on port 8000
+DJANGO_PIDS=$(lsof -ti:8000 2>/dev/null || true)
+if [ -n "$DJANGO_PIDS" ]; then
+    echo -n "Killing processes on port 8000... "
+    echo "$DJANGO_PIDS" | xargs kill -9 2>/dev/null || true
+    echo -e "${GREEN}Done${NC}"
+fi
+
+# Kill FastAPI on port 9223
+FASTAPI_PIDS=$(lsof -ti:9223 2>/dev/null || true)
+if [ -n "$FASTAPI_PIDS" ]; then
+    echo -n "Killing processes on port 9223... "
+    echo "$FASTAPI_PIDS" | xargs kill -9 2>/dev/null || true
+    echo -e "${GREEN}Done${NC}"
+fi
+
+# Kill any playwright/python processes related to jasondemo2
+echo -e "\n${YELLOW}Checking for related Python processes...${NC}"
+for pid in $(pgrep -f "jasondemo2" 2>/dev/null || true); do
+    if [ -n "$pid" ]; then
+        echo -n "Stopping Python process $pid... "
+        kill -9 "$pid" 2>/dev/null || true
+        echo -e "${GREEN}Done${NC}"
+    fi
+done
+
+# Clean up log files
+rm -f /tmp/jasondemo2_*.log
+
+echo -e "\n${GREEN}All demo servers stopped!${NC}"
