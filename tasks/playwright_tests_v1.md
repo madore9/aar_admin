@@ -7,6 +7,51 @@
 
 ---
 
+## Core Principle: Always Run Tests After Code Changes
+
+**This is a mandatory practice for this project.**
+
+Any time you make code changes (templates, views, JavaScript, CSS, etc.), you MUST:
+
+1. **Run the relevant tests** to verify your changes work correctly
+2. **Run the full test suite** to ensure you haven't broken existing functionality
+3. **Fix any test failures** before committing
+
+### Why This Matters
+
+- Prevents regressions from being introduced
+- Catches issues early before they reach production
+- Serves as living documentation of expected behavior
+- Makes code review faster and more effective
+
+### Running Tests
+
+```bash
+# Start servers first (in separate terminals)
+cd django/app && python3 manage.py runserver 0.0.0.0:8000
+cd fastapi && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 9223
+
+# Run header-specific tests (after header changes)
+python3 -m pytest tests/e2e/test_header.py -v
+
+# Run all e2e tests
+python3 -m pytest tests/e2e/ -v
+
+# Run specific test file
+python3 -m pytest tests/e2e/test_rbac.py -v
+```
+
+### When to Run Tests
+
+- After modifying any template (HTML)
+- After adding or changing JavaScript
+- After modifying CSS styles
+- After adding new views or endpoints
+- After modifying the header or layout
+- After any UI changes
+
+---
+
 ## Table of Contents
 
 1. [Setup Instructions](#1-setup-instructions)

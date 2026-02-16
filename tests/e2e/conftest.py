@@ -26,20 +26,20 @@ def admin_page(page: Page) -> Page:
     page.goto("http://localhost:8000/")
     page.wait_for_load_state()
 
-    # Click on the admin role button in the dropdown
+    # Click on the user avatar to open dropdown
     try:
-        # Open role dropdown
-        role_dropdown = page.locator("#role-dropdown")
-        if role_dropdown.is_visible():
-            role_dropdown.click()
+        # Open user dropdown by clicking the avatar button
+        user_button = page.locator("button[aria-label='Open User Account Navigation']")
+        if user_button.is_visible():
+            user_button.click()
             page.wait_for_timeout(300)
-        
-        # Click admin option
+
+        # Click admin role option
         admin_btn = page.locator("button.role-option[data-role='ADMIN_USER']")
         if admin_btn.is_visible():
             admin_btn.click()
             page.wait_for_timeout(500)
-        
+
         # Reload to ensure session is applied
         page.reload()
         page.wait_for_load_state()
@@ -63,24 +63,24 @@ def set_role(page: Page):
     """Helper fixture to switch roles mid-test."""
     def _set_role(role: str):
         try:
-            # Open role dropdown
-            role_dropdown = page.locator("#role-dropdown")
-            if role_dropdown.is_visible():
-                role_dropdown.click()
+            # Open user dropdown by clicking the avatar button
+            user_button = page.locator("button[aria-label='Open User Account Navigation']")
+            if user_button.is_visible():
+                user_button.click()
                 page.wait_for_timeout(300)
-            
+
             # Click the role option
             role_btn = page.locator(f"button.role-option[data-role='{role}']")
             if role_btn.is_visible():
                 role_btn.click()
                 page.wait_for_timeout(500)
-            
+
             # Reload to ensure session is applied
             page.reload()
             page.wait_for_load_state()
         except Exception as e:
             print(f"Could not set role via UI: {e}")
-        
+
         return page
     return _set_role
 
