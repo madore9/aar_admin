@@ -16,7 +16,7 @@
             </div>
             <input type="text" name="q" value="{{ search_query }}"
                    placeholder="Search plans..."
-                   class="block w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-lg leading-5 bg-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30] sm:text-sm">
+                   class="block w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-lg leading-5 bg-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
         </div>
     </form>
 </div>
@@ -25,13 +25,13 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
     {% for plan in plans %}
     <div class="bg-white rounded-lg border border-neutral-200 p-5 hover:shadow-md transition-shadow">
-        <h3 class="text-lg font-semibold text-[#a51c30]">{{ plan.name }}</h3>
-        <span class="inline-block px-2 py-0.5 text-xs font-medium bg-[#fde6e6] text-[#a51c30] rounded-full mt-2">
+        <h3 class="text-lg font-semibold text-primary">{{ plan.name }}</h3>
+        <span class="inline-block px-2 py-0.5 text-xs font-medium bg-primary-light text-primary rounded-full mt-2">
             {{ plan.type }}
         </span>
         <p class="text-sm text-neutral-500 mt-2">Last updated: {{ plan.last_updated }}</p>
         <a href="{% url 'plan_detail' plan.id %}"
-           class="inline-block px-4 py-2 bg-[#a51c30] hover:bg-[#801b30] text-white text-sm font-medium rounded-lg mt-3 transition-colors">
+           class="btn btn-primary mt-3">
             Select Plan
         </a>
     </div>

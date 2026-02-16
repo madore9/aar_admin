@@ -50,7 +50,7 @@
 
         <!-- Edit Validity button -->
         <button type="button"
-                class="p-1 text-neutral-400 hover:text-[#a51c30] transition-colors"
+                class="p-1 text-neutral-400 hover:text-primary transition-colors"
                 onclick="openValidityModal('{{ plan.id }}', '{{ requirement.id }}', '{{ course.identifier }}', '{{ course.validity_type }}', '{{ course.valid_terms|default_if_none:"" }}', {{ course.is_wildcard|yesno:'true,false' }})"
                 title="Edit validity">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

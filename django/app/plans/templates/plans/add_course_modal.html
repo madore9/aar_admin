@@ -20,16 +20,16 @@
             <!-- Tab Navigation -->
             <div class="border-b border-neutral-200 mb-4">
                 <nav class="flex space-x-1" role="tablist">
-                    <button type="button" class="hs-tab-active:border-[#a51c30] hs-tab-active:text-[#a51c30] py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800 active" data-hs-tab="#acm-tabpane-search" aria-selected="true">
+                    <button type="button" class="hs-tab-active:border-primary hs-tab-active:text-primary py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800 active" data-hs-tab="#acm-tabpane-search" aria-selected="true">
                         Search &amp; Add
                     </button>
-                    <button type="button" class="hs-tab-active:border-[#a51c30] hs-tab-active:text-[#a51c30] py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800" data-hs-tab="#acm-tabpane-wildcards" aria-selected="false">
+                    <button type="button" class="hs-tab-active:border-primary hs-tab-active:text-primary py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800" data-hs-tab="#acm-tabpane-wildcards" aria-selected="false">
                         Wildcards
                     </button>
-                    <button type="button" class="hs-tab-active:border-[#a51c30] hs-tab-active:text-[#a51c30] py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800" data-hs-tab="#acm-tabpane-from-list" aria-selected="false">
+                    <button type="button" class="hs-tab-active:border-primary hs-tab-active:text-primary py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800" data-hs-tab="#acm-tabpane-from-list" aria-selected="false">
                         Add From List
                     </button>
-                    <button type="button" class="hs-tab-active:border-[#a51c30] hs-tab-active:text-[#a51c30] py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800" data-hs-tab="#acm-tabpane-shared" aria-selected="false">
+                    <button type="button" class="hs-tab-active:border-primary hs-tab-active:text-primary py-2 px-4 text-sm font-medium border-b-2 border-transparent text-neutral-600 hover:text-neutral-800" data-hs-tab="#acm-tabpane-shared" aria-selected="false">
                         Shared Lists
                     </button>
                 </nav>
@@ -40,18 +40,18 @@
                 <!-- Tab 1: Search & Add -->
                 <div id="acm-tabpane-search" role="tabpanel">
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-neutral-700 mb-1">Search Courses</label>
+                        <label class="form-label mb-1">Search Courses</label>
                         <input type="text" id="acm-search-input" placeholder="Search by course ID, title, or department..."
-                            class="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30]">
+                            class="form-control">
                     </div>
                     <div id="acm-search-results" class="mb-4 space-y-1 max-h-48 overflow-y-auto">
                         <p class="text-sm text-neutral-500 text-center py-4">Start typing to search courses</p>
                     </div>
                     <div id="acm-staging-container" class="hidden mb-4">
-                        <label class="block text-sm font-medium text-neutral-700 mb-2">Selected Courses</label>
+                        <label class="form-label mb-2">Selected Courses</label>
                         <div id="acm-staged" class="flex flex-wrap gap-2 min-h-[40px] p-2 border border-neutral-200 rounded-lg"></div>
                     </div>
-                    <button type="button" id="acm-add-staged-btn" class="w-full bg-[#a51c30] hover:bg-[#801b30] text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <button type="button" id="acm-add-staged-btn" class="w-full btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         Add Selected Courses
                     </button>
                 </div>
@@ -59,9 +59,9 @@
                 <!-- Tab 2: Wildcards -->
                 <div id="acm-tabpane-wildcards" class="hidden" role="tabpanel">
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-neutral-700 mb-1">Wildcard Patterns</label>
+                        <label class="form-label mb-1">Wildcard Patterns</label>
                         <textarea id="acm-wildcard-input" rows="6" placeholder="CS1##&#10;CS*&#10;MATH##"
-                            class="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30] font-mono"></textarea>
+                            class="form-control font-mono"></textarea>
                         <p class="text-xs text-neutral-500 mt-1">Use # for single character, * for any characters. One pattern per line.</p>
                     </div>
                     <div id="acm-wildcard-review" class="hidden mb-4 p-3 bg-neutral-50 rounded-lg">
@@ -72,10 +72,10 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button type="button" id="acm-review-wildcards-btn" class="flex-1 border border-neutral-300 text-neutral-700 hover:bg-neutral-50 font-medium py-2 px-4 rounded-lg">
+                        <button type="button" id="acm-review-wildcards-btn" class="flex-1 btn btn-white">
                             Review Patterns
                         </button>
-                        <button type="button" id="acm-add-wildcards-btn" class="flex-1 bg-[#a51c30] hover:bg-[#801b30] text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <button type="button" id="acm-add-wildcards-btn" class="flex-1 btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             Add Wildcards
                         </button>
                     </div>
@@ -84,9 +84,9 @@
                 <!-- Tab 3: Add From List -->
                 <div id="acm-tabpane-from-list" class="hidden" role="tabpanel">
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-neutral-700 mb-1">Select Course List</label>
+                        <label class="form-label mb-1">Select Course List</label>
                         <select id="acm-course-list-select"
-                            class="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#a51c30] focus:border-[#a51c30]">
+                            class="form-control">
                             <option value="">Choose a list...</option>
                             {% for list in course_lists %}
                             <option value="{{ list.id }}">{{ list.name }}</option>
@@ -96,7 +96,7 @@
                     <div id="acm-list-preview" class="mb-4 max-h-48 overflow-y-auto">
                         <p class="text-sm text-neutral-500 text-center py-4">Select a course list to preview</p>
                     </div>
-                    <button type="button" id="acm-add-from-list-btn" class="w-full bg-[#a51c30] hover:bg-[#801b30] text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <button type="button" id="acm-add-from-list-btn" class="w-full btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         Add All from List
                     </button>
                 </div>
@@ -123,7 +123,7 @@
 
             <!-- Footer -->
             <div class="mt-4 pt-4 border-t border-neutral-200 flex justify-end">
-                <button type="button" class="border border-neutral-300 text-neutral-700 hover:bg-neutral-50 font-medium py-2 px-4 rounded-lg" data-hs-overlay="#add-course-modal">
+                <button type="button" class="btn btn-white" data-hs-overlay="#add-course-modal">
                     Close
                 </button>
             </div>

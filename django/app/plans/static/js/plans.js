@@ -77,7 +77,7 @@ function showToast(msg, type = 'success') {
     const colors = {
         success: 'border-green-500 bg-green-50 text-green-800',
         error: 'border-red-500 bg-red-50 text-red-800',
-        info: 'border-[#a51c30] bg-[#fde6e6] text-[#a51c30]',
+        info: 'border-primary bg-primary-light text-primary',
     };
     const icons = {
         success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',

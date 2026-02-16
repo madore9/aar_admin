@@ -10,7 +10,7 @@
             {% if user_role == 'ADMIN_USER' %}
             <button type="button"
                     onclick="openEditRequirementModal('{{ plan.id }}', '{{ requirement.id }}', '{{ requirement.title|escapejs }}', '{{ requirement.description|escapejs }}', {{ requirement.required_courses_count|default:'0' }}, {{ requirement.required_units|default:'0' }}, '{{ requirement.minimum_gpa|default_if_none:"" }}')"
-                    class="text-neutral-400 hover:text-[#a51c30] transition-colors" title="Edit requirement">
+                    class="text-neutral-400 hover:text-primary transition-colors" title="Edit requirement">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                 </svg>
@@ -21,7 +21,7 @@
             {% if user_role == 'ADMIN_USER' %}
             <button type="button"
                     onclick="openAddCourseModal('{{ plan.id }}', '{{ requirement.id }}', '{{ requirement.title|escapejs }}')"
-                    class="inline-flex items-center px-3 py-1.5 border border-[#a51c30] text-[#a51c30] text-xs font-medium rounded-lg hover:bg-[#fde6e6] transition-colors">
+                    class="btn btn-secondary text-xs">
                 <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -91,7 +91,7 @@
                 </button>
                 <button type="button"
                         onclick="saveChanges('{{ plan.id }}', '{{ requirement.id }}')"
-                        class="inline-flex items-center px-3 py-1.5 bg-[#a51c30] hover:bg-[#801b30] text-white text-sm font-medium rounded-lg transition-colors">
+                        class="btn btn-primary text-sm">
                     Save Changes
                 </button>
             </div>

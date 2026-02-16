@@ -8,7 +8,7 @@
       <!-- Header -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
         <div class="flex items-center gap-3">
-          <svg class="w-5 h-5 text-[#a51c30]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           <h3 class="text-lg font-semibold text-neutral-800">Audit Log</h3>
@@ -24,7 +24,7 @@
       <div class="px-6 py-4 overflow-y-auto max-h-[60vh]">
         <!-- Loading State -->
         <div id="history-modal-loading" class="hidden flex flex-col items-center justify-center py-8">
-          <div class="w-8 h-8 border-4 border-[#a51c30] border-t-transparent rounded-full animate-spin"></div>
+          <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           <p class="mt-2 text-sm text-neutral-500">Loading audit log...</p>
         </div>
 
@@ -38,14 +38,14 @@
 
         <!-- Entries List (Timeline) -->
         <div id="history-modal-entries" class="hidden">
-          <div class="relative border-l-2 border-[#a51c30]/30 ml-3 space-y-6">
+          <div class="relative border-l-2 border-primary/30 ml-3 space-y-6">
           </div>
         </div>
       </div>
 
       <!-- Footer -->
       <div class="flex justify-end px-6 py-4 border-t border-neutral-200 bg-neutral-50 rounded-b-xl">
-        <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-[#a51c30] hover:bg-[#801b30] rounded-lg transition-colors" data-hs-overlay="#history-modal">
+        <button type="button" class="btn btn-primary" data-hs-overlay="#history-modal">
           Close
         </button>
       </div>
@@ -112,13 +112,13 @@
 
     entriesContainer.innerHTML = entries.map(entry => {
       const isAdmin = entry.user === 'ADMIN_USER';
-      const badgeClass = isAdmin ? 'bg-[#a51c30] text-white' : 'bg-neutral-200 text-neutral-700';
+      const badgeClass = isAdmin ? 'badge badge-primary' : 'badge badge-neutral';
       const badgeLabel = isAdmin ? 'Admin' : 'Dept';
       const timestamp = formatTimestamp(entry.timestamp);
 
       return `
         <div class="relative pl-6">
-          <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#a51c30] border-2 border-white ring-2 ring-[#a51c30]/30"></div>
+          <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-primary border-2 border-white ring-2 ring-primary/30"></div>
           <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 p-3 bg-neutral-50 rounded-lg">
             <div class="flex-shrink-0 w-36">
               <span class="text-xs font-medium text-neutral-500">${escapeHtml(timestamp)}</span>

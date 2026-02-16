@@ -139,7 +139,7 @@ function renderResults() {
 
         let actions = '';
         if (result.status === 'MULTIPLE_MATCHES') {
-            actions += `<button type="button" onclick="openResolveModal(${i})" class="text-[#a51c30] hover:underline text-sm font-medium">Resolve</button> `;
+            actions += `<button type="button" onclick="openResolveModal(${i})" class="text-primary hover:underline text-sm font-medium">Resolve</button> `;
         }
         actions += `<button type="button" onclick="removeResult(${i})" class="text-neutral-400 hover:text-red-500 text-sm">Remove</button>`;
 
@@ -185,7 +185,7 @@ function openResolveModal(index) {
     container.innerHTML = result.candidates.map(c => {
         const isDup = existingIdentifiers.includes(c.system_id);
         return `<div class="flex items-start gap-3 p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50">
-            <input type="checkbox" value="${c.system_id}" class="mt-1 h-4 w-4 text-[#a51c30] focus:ring-[#a51c30] border-neutral-300 rounded">
+            <input type="checkbox" value="${c.system_id}" class="mt-1 h-4 w-4 text-primary text-primary focus:ring-primary border-neutral-300 rounded">
             <div class="flex-1">
                 <div class="flex items-center gap-2">
                     <span class="font-mono text-sm">${c.system_id}</span>
@@ -309,7 +309,7 @@ function renderBatchStaged() {
         return;
     }
     container.innerHTML = batchStagedCourses.map((c, i) => `
-        <span class="inline-flex items-center gap-1 bg-[#fde6e6] text-[#a51c30] px-2 py-1 rounded text-sm">
+        <span class="inline-flex items-center gap-1 bg-[#fde6e6] text-primary px-2 py-1 rounded text-sm">
             ${escBatch(c.id)}
             <button type="button" onclick="batchUnstageCourse(${i})" class="hover:text-[#801b30]">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -355,9 +355,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const dropZone = document.getElementById('batch-file-drop-zone');
     const fileInput = document.getElementById('batch-file-input');
 
-    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-[#a51c30]'); });
-    dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('border-[#a51c30]'); });
-    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('border-[#a51c30]'); handleFileUpload(e.dataTransfer.files[0]); });
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-primary'); });
+    dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('border-primary'); });
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('border-primary'); handleFileUpload(e.dataTransfer.files[0]); });
     dropZone.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', e => handleFileUpload(e.target.files[0]));
 

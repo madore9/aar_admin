@@ -35,7 +35,7 @@ def test_create_course_list(admin_page):
             if desc_input.count() > 0:
                 desc_input.fill("Test Description")
 
-            save_btn = page.locator("button:has-text('Save'), button:has-text('Create')")
+            save_btn = page.locator("#course-list-modal button[type='submit'], #course-list-form button[type='submit']")
             if save_btn.count() > 0:
                 save_btn.click()
                 page.wait_for_timeout(500)
@@ -50,8 +50,8 @@ def test_course_list_restricted_for_dept(dept_page):
     # Check that we're not on the course lists page
     if page.url.endswith("/course-lists/"):
         # Check for restricted access message or form not visible
-        form_visible = page.locator("button:has-text('Create New List')").count() > 0
-        expect(form_visible).to_be_falsey()
+        create_btn = page.locator("button:has-text('Create New List')")
+        expect(create_btn).to_be_hidden()
 
 
 def test_course_list_navigation_from_header(admin_page):

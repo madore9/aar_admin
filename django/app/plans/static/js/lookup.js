@@ -83,7 +83,7 @@ function renderSearchResults(results) {
         resultItem.className = 'px-4 py-3 hover:bg-neutral-50 cursor-pointer border-b border-neutral-100 last:border-b-0';
         resultItem.innerHTML = `
             <div class="flex items-center gap-3">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#a51c30] text-white">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium badge badge-primary">
                     ${escapeHtml(course.system_id || '')}
                 </span>
                 <span class="text-sm font-medium text-neutral-900">${escapeHtml(course.id || '')}</span>
@@ -195,7 +195,7 @@ function renderUsage(usage) {
         planHeader.className = 'bg-neutral-50 px-4 py-3 border-b border-neutral-200 flex items-center justify-between';
         planHeader.innerHTML = `
             <h3 class="font-semibold text-neutral-900">${escapeHtml(planName)}</h3>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#fde6e6] text-[#a51c30]">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium badge badge-primary">
                 ${escapeHtml(planData.plan_type || 'Plan')}
             </span>
         `;
