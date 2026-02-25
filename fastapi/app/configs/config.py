@@ -7,3 +7,4 @@ config_module = import_module(f"app.configs.config_{aar_env}")
 # Re-export all config values
 DATABASE_PATH = getattr(config_module, "DATABASE_PATH", "aar_admin.db")
 API_KEY = getattr(config_module, "API_KEY", "dev-key-123")
+REDIS_URL = getattr(config_module, "REDIS_URL", "redis://localhost:6379")

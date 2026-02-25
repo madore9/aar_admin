@@ -1,4 +1,11 @@
+"""
+Plan service — business logic layer between views and the AAR API.
+"""
+import logging
+
 from plans.services.api_client import api_get, api_post, api_put, api_delete
+
+logger = logging.getLogger(__name__)
 
 
 async def get_plans(search_query: str = None) -> list[dict]:

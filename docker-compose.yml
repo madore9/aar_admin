@@ -1,4 +1,16 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: aar-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   aar-api:
     build: ./fastapi
     ports:
@@ -7,6 +19,10 @@ services:
       - api-data:/app/data
     environment:
       - AAR_ENV=local
+      - AAR_REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9223/healthCheck"]
       interval: 30s
@@ -22,6 +38,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=aar_admin.settings_local
       - AAR_API_BASE_URL=http://aar-api:9223
+      - AAR_REDIS_URL=redis://redis:6379
 
 volumes:
   api-data:

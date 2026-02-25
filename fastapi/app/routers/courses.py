@@ -1,19 +1,34 @@
+import logging
 import re
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+
+from fastapi import APIRouter, HTTPException, Query, Security
+from fastapi_cache.decorator import cache
+
+from app.cache import aar_key_builder
 from app.databases.sqlite_db import execute_query
-from app.schemas.course import Course, CourseSearchResponse
+from app.schemas.course import Course, CourseSearchResponse, CourseUsageEntry
+from app.utils.security import get_authenticated_user, KeyPermissions
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
 
-@router.get("/")
+@router.get(
+    "/",
+    response_model=CourseSearchResponse,
+    description=f"List or search courses. Requires key permission: `{KeyPermissions.READ_COURSES.value}`",
+)
+@cache(expire=600, namespace="courses", key_builder=aar_key_builder)
 async def search_courses(
     q: str = Query(None, description="Search query"),
-    field: str = Query("all", description="Search field: all, id, title, department")
+    field: str = Query("all", description="Search field: all, id, title, department"),
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.READ_COURSES]),
 ):
     """List/search courses with optional field filtering."""
-    
+    logger.info(f"search_courses called, q={q}, field={field}")
+
     # Validate field parameter
     valid_fields = ["all", "id", "title", "department", "system_id"]
     if field not in valid_fields:
@@ -48,9 +63,18 @@ async def search_courses(
     return CourseSearchResponse(courses=courses, total=len(courses))
 
 
-@router.get("/{system_id}")
-async def get_course(system_id: str):
+@router.get(
+    "/{system_id}",
+    response_model=Course,
+    description=f"Get a single course by system_id. Requires key permission: `{KeyPermissions.READ_COURSES.value}`",
+)
+@cache(expire=1800, namespace="courses", key_builder=aar_key_builder)
+async def get_course(
+    system_id: str,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.READ_COURSES]),
+):
     """Get a single course by system_id."""
+    logger.info(f"get_course called, system_id={system_id}")
     course_data = await execute_query(
         "SELECT * FROM courses WHERE system_id = ?",
         [system_id],
@@ -61,9 +85,17 @@ async def get_course(system_id: str):
     return Course(**course_data)
 
 
-@router.get("/{system_id}/usage")
-async def get_course_usage(system_id: str):
+@router.get(
+    "/{system_id}/usage",
+    response_model=list[CourseUsageEntry],
+    description=f"Get all plans/requirements using this course. Requires key permission: `{KeyPermissions.READ_COURSES.value}`",
+)
+async def get_course_usage(
+    system_id: str,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.READ_COURSES]),
+):
     """Get where this course is used across all plans."""
+    logger.info(f"get_course_usage called, system_id={system_id}")
     course = await execute_query(
         "SELECT * FROM courses WHERE system_id = ?",
         [system_id],
