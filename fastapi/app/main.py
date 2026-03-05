@@ -9,6 +9,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 
 from app.databases import sqlite_db
+from app.databases.oracle_db import init_oracle_pool, close_oracle_pool
 from app.services.seed_data import seed_database
 from app.routers import aar
 from app.configs.config import REDIS_URL
@@ -41,6 +42,7 @@ async def lifespan(app: FastAPI):
     logger.info(f"AAR Admin API starting, env={aar_env}")
     await sqlite_db.init_db()
     await seed_database()
+    await init_oracle_pool()   # no-ops silently when ORACLE_DSN is empty
 
     # --- Cache backend -------------------------------------------------------
     # Local dev: in-memory cache (no Redis server required)
@@ -62,6 +64,7 @@ async def lifespan(app: FastAPI):
     logger.info("AAR Admin API shutting down")
     if _redis_client:
         await _redis_client.aclose()
+    await close_oracle_pool()
     await sqlite_db.close_db()
 
 
