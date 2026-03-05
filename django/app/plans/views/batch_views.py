@@ -1,19 +1,30 @@
+"""
+Batch operations views — bulk course import and validation.
+"""
+import asyncio
 import json
-from django.shortcuts import render
+import logging
+
 from django.http import JsonResponse
+from django.shortcuts import render
+
+from aar_admin.common.aar_api import api_post
 from plans.services.plan_service import get_plans, get_plan_detail, get_courses
-from plans.services.api_client import api_post
 from plans.views.plan_views import require_admin
+
+logger = logging.getLogger(__name__)
 
 
 @require_admin
 async def batch_add(request):
-    plans = await get_plans()
-    courses_data = await get_courses()
+    plans, courses_data = await asyncio.gather(
+        get_plans(),
+        get_courses(),
+    )
     context = {
         'active_tab': 'batch',
-        'plans': plans,
-        'all_courses': courses_data.get('courses', []),
+        'plans': plans or [],
+        'all_courses': courses_data.get('courses', []) if courses_data else [],
     }
     return render(request, 'batch/batch_add.html', context)
 

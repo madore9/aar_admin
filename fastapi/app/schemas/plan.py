@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Optional, Literal
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class PlanType(str, Enum):
@@ -17,10 +17,12 @@ class Scope(str, Enum):
 
 
 class RequirementCourse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
+
     identifier: str
     is_wildcard: bool
-    is_excluded: Optional[bool] = False
-    include_equivalent_courses: Optional[bool] = False
+    is_excluded: bool = False
+    include_equivalent_courses: bool = False
     validity_type: Literal["ALWAYS", "TERMS", "DATE_RANGE"] = "ALWAYS"
     valid_terms: Optional[list[str]] = None
     valid_from: Optional[str] = None
@@ -28,6 +30,8 @@ class RequirementCourse(BaseModel):
 
 
 class Requirement(BaseModel):
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
+
     id: str
     title: str
     description: str
@@ -39,6 +43,8 @@ class Requirement(BaseModel):
 
 
 class AcademicPlan(BaseModel):
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
+
     id: str
     name: str
     type: PlanType
@@ -71,3 +77,13 @@ class EditRequirementRequest(BaseModel):
     required_courses_count: Optional[int] = None
     required_units: Optional[int] = None
     minimum_gpa: Optional[float] = None
+
+
+class StatusResponse(BaseModel):
+    status: str
+
+
+class DraftResponse(BaseModel):
+    requirement_id: str
+    changes_json: dict = {}
+    updated_at: str

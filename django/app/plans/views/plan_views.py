@@ -1,15 +1,24 @@
+"""
+Plan views — main CRUD and API endpoints for academic plans.
+"""
+import asyncio
 import csv
 import io
 import json
+import logging
 from functools import wraps
+
+from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse, Http404
 from django.views.decorators.http import require_POST
+
+from aar_admin.common.aar_api import api_get, api_post, api_delete
 from plans.services.plan_service import (
     get_plans, get_plan_with_course_info, get_courses, get_course_lists,
     get_course_list_detail, add_requirement, edit_requirement,
 )
-from plans.services.api_client import api_get, api_post, api_delete
+
+logger = logging.getLogger(__name__)
 
 
 def require_admin(view_func):
@@ -71,15 +80,17 @@ async def plan_list(request):
 
 
 async def plan_detail(request, plan_id):
-    plan = await get_plan_with_course_info(plan_id)
+    plan, courses_data, course_lists = await asyncio.gather(
+        get_plan_with_course_info(plan_id),
+        get_courses(),
+        get_course_lists(),
+    )
     if not plan:
         raise Http404("Plan not found")
-    courses_data = await get_courses()
-    course_lists = await get_course_lists()
     context = {
         'plan': plan,
-        'all_courses': courses_data.get('courses', []),
-        'course_lists': course_lists,
+        'all_courses': courses_data.get('courses', []) if courses_data else [],
+        'course_lists': course_lists or [],
         'active_tab': 'plans',
     }
     return render(request, 'plans/plan_detail.html', context)
@@ -87,6 +98,11 @@ async def plan_detail(request, plan_id):
 
 @require_POST
 async def set_role(request):
+    # DEV ONLY — simulates OIDC group-based role assignment for local testing.
+    # In production, role is derived from OIDC claims at login and stored in session.
+    from django.conf import settings
+    if not settings.DEBUG:
+        raise Http404
     role = request.POST.get('role', 'DEPT_USER')
     if role in ('ADMIN_USER', 'DEPT_USER'):
         request.session['user_role'] = role
@@ -112,7 +128,6 @@ async def api_get_course_list_detail(request, list_id):
     return JsonResponse(result)
 
 
-@require_admin
 @require_admin
 async def api_add_requirement(request, plan_id):
     """Add a new requirement to a plan."""

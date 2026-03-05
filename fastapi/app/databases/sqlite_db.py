@@ -1,5 +1,14 @@
+import asyncio
+import logging
+
 import aiosqlite
+
 from app.configs.config import DATABASE_PATH
+
+logger = logging.getLogger(__name__)
+
+MAX_RETRIES = 3
+RETRY_DELAY_SECONDS = 1
 
 _db = None
 
@@ -25,19 +34,35 @@ async def check_health():
         return False
 
 async def execute_query(sql, params=None, fetch_one=False):
-    db = await get_db()
-    cursor = await db.execute(sql, params or [])
-    if fetch_one:
-        row = await cursor.fetchone()
-        return dict(row) if row else None
-    rows = await cursor.fetchall()
-    return [dict(row) for row in rows]
+    logger.debug(f"Executing query: {sql[:100]}")
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            db = await get_db()
+            cursor = await db.execute(sql, params or [])
+            if fetch_one:
+                row = await cursor.fetchone()
+                return dict(row) if row else None
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+        except Exception as e:
+            logger.error(f"DB query failed (attempt {attempt}/{MAX_RETRIES}): {e}")
+            if attempt == MAX_RETRIES:
+                raise
+            await asyncio.sleep(RETRY_DELAY_SECONDS)
 
 async def execute_write(sql, params=None):
-    db = await get_db()
-    cursor = await db.execute(sql, params or [])
-    await db.commit()
-    return cursor.lastrowid
+    logger.debug(f"Executing write: {sql[:100]}")
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            db = await get_db()
+            cursor = await db.execute(sql, params or [])
+            await db.commit()
+            return cursor.lastrowid
+        except Exception as e:
+            logger.error(f"DB write failed (attempt {attempt}/{MAX_RETRIES}): {e}")
+            if attempt == MAX_RETRIES:
+                raise
+            await asyncio.sleep(RETRY_DELAY_SECONDS)
 
 async def init_db():
     """Create tables on startup."""

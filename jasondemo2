@@ -51,7 +51,7 @@ wait_for_service() {
     local name=$2
     local max_attempts=30
     local attempt=1
-    
+
     echo -n "Waiting for $name to be ready..."
     while [ $attempt -le $max_attempts ]; do
         if curl -s "$url/healthCheck" > /dev/null 2>&1 || curl -s "$url" > /dev/null 2>&1; then
@@ -96,13 +96,6 @@ fi
 if ! command -v uv &> /dev/null; then
     echo -e "${YELLOW}Warning: 'uv' not found. Installing...${NC}"
     python3 -m pip install uv
-fi
-
-# Check if playwright is available for browser automation
-if ! python3 -c "import playwright" 2>/dev/null; then
-    echo -e "${YELLOW}Warning: 'playwright' not found. Installing...${NC}"
-    python3 -m pip install playwright
-    playwright install chromium
 fi
 
 # Kill any existing processes from previous sessions

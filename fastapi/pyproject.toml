@@ -7,7 +7,14 @@ dependencies = [
     "aiosqlite>=0.20.0",
     "pydantic>=2.7",
     "uvicorn>=0.30.0",
+    "fastapi-cache2[redis]>=0.2",
+    "redis[hiredis]>=5.0",
+    "oracledb>=2.0",
 ]
 
 [dependency-groups]
-dev = ["pytest", "httpx"]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.23", "httpx>=0.24"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

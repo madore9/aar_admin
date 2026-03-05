@@ -1,12 +1,22 @@
 import json
+import logging
 import uuid
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, status
+
+from fastapi import APIRouter, HTTPException, Security, status
+from fastapi_cache import FastAPICache
+from fastapi_cache.decorator import cache
+
+from app.cache import aar_key_builder
 from app.databases.sqlite_db import execute_query, execute_write
 from app.schemas.plan import (
     AcademicPlan, PlanType, Requirement, RequirementCourse,
     AddRequirementRequest, EditRequirementRequest, SaveChangesRequest,
+    StatusResponse, DraftResponse,
 )
+from app.utils.security import get_authenticated_user, KeyPermissions
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/plans", tags=["plans"])
 
@@ -64,9 +74,18 @@ async def _get_requirement_with_courses(req_id: str) -> Requirement:
     return _build_requirement(req_data, courses)
 
 
-@router.get("/")
-async def list_plans(q: str = None):
+@router.get(
+    "/",
+    response_model=list[AcademicPlan],
+    description=f"List all plans. Requires key permission: `{KeyPermissions.READ_PLANS.value}`",
+)
+@cache(expire=300, namespace="plans", key_builder=aar_key_builder)
+async def list_plans(
+    q: str = None,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.READ_PLANS]),
+):
     """List all plans (without nested requirements)."""
+    logger.info(f"list_plans called, q={q}")
     if q:
         plans_data = await execute_query(
             "SELECT * FROM academic_plans WHERE name LIKE ? OR type LIKE ? ORDER BY name",
@@ -84,9 +103,18 @@ async def list_plans(q: str = None):
     ]
 
 
-@router.get("/{plan_id}")
-async def get_plan(plan_id: str):
+@router.get(
+    "/{plan_id}",
+    response_model=AcademicPlan,
+    description=f"Get a plan with nested requirements and courses. Requires key permission: `{KeyPermissions.READ_PLANS.value}`",
+)
+@cache(expire=900, namespace="plans", key_builder=aar_key_builder)
+async def get_plan(
+    plan_id: str,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.READ_PLANS]),
+):
     """Get a plan with nested requirements and courses."""
+    logger.info(f"get_plan called, plan_id={plan_id}")
     plan_data = await execute_query(
         "SELECT * FROM academic_plans WHERE id = ?", [plan_id], fetch_one=True
     )
@@ -112,9 +140,19 @@ async def get_plan(plan_id: str):
     )
 
 
-@router.post("/{plan_id}/requirements", status_code=status.HTTP_201_CREATED)
-async def add_requirement(plan_id: str, request: AddRequirementRequest):
+@router.post(
+    "/{plan_id}/requirements",
+    response_model=Requirement,
+    status_code=status.HTTP_201_CREATED,
+    description=f"Add a new requirement to a plan. Requires key permission: `{KeyPermissions.WRITE_PLANS.value}`",
+)
+async def add_requirement(
+    plan_id: str,
+    request: AddRequirementRequest,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.WRITE_PLANS]),
+):
     """Add a new requirement to a plan."""
+    logger.info(f"add_requirement called, plan_id={plan_id}, title={request.title}")
     plan = await execute_query(
         "SELECT * FROM academic_plans WHERE id = ?", [plan_id], fetch_one=True
     )
@@ -139,12 +177,24 @@ async def add_requirement(plan_id: str, request: AddRequirementRequest):
         [datetime.now(timezone.utc).isoformat(), plan_id]
     )
 
-    return await _get_requirement_with_courses(req_id)
+    result = await _get_requirement_with_courses(req_id)
+    await FastAPICache.clear(namespace="plans")
+    return result
 
 
-@router.put("/{plan_id}/requirements/{req_id}")
-async def edit_requirement(plan_id: str, req_id: str, request: EditRequirementRequest):
+@router.put(
+    "/{plan_id}/requirements/{req_id}",
+    response_model=Requirement,
+    description=f"Edit requirement metadata (only non-None fields). Requires key permission: `{KeyPermissions.WRITE_PLANS.value}`",
+)
+async def edit_requirement(
+    plan_id: str,
+    req_id: str,
+    request: EditRequirementRequest,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.WRITE_PLANS]),
+):
     """Edit requirement metadata (only non-None fields)."""
+    logger.info(f"edit_requirement called, plan_id={plan_id}, req_id={req_id}")
     req = await execute_query(
         "SELECT * FROM requirements WHERE id = ? AND plan_id = ?",
         [req_id, plan_id], fetch_one=True
@@ -166,6 +216,8 @@ async def edit_requirement(plan_id: str, req_id: str, request: EditRequirementRe
 
     if updates:
         params.append(req_id)
+        # Safe: `updates` contains only hardcoded column names (e.g., "title = ?").
+        # User data enters exclusively through the parameterized `params` list.
         await execute_write(
             f"UPDATE requirements SET {', '.join(updates)} WHERE id = ?", params
         )
@@ -174,12 +226,24 @@ async def edit_requirement(plan_id: str, req_id: str, request: EditRequirementRe
             [datetime.now(timezone.utc).isoformat(), plan_id]
         )
 
-    return await _get_requirement_with_courses(req_id)
+    result = await _get_requirement_with_courses(req_id)
+    await FastAPICache.clear(namespace="plans")
+    return result
 
 
-@router.post("/{plan_id}/requirements/{req_id}/save-changes")
-async def save_changes(plan_id: str, req_id: str, request: SaveChangesRequest):
+@router.post(
+    "/{plan_id}/requirements/{req_id}/save-changes",
+    response_model=Requirement,
+    description=f"Apply pending changes (additions, removals, modifications). Requires key permission: `{KeyPermissions.WRITE_PLANS.value}`",
+)
+async def save_changes(
+    plan_id: str,
+    req_id: str,
+    request: SaveChangesRequest,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.WRITE_PLANS]),
+):
     """Apply pending changes (additions, removals, modifications)."""
+    logger.info(f"save_changes called, plan_id={plan_id}, req_id={req_id}")
     req = await execute_query(
         "SELECT * FROM requirements WHERE id = ? AND plan_id = ?",
         [req_id, plan_id], fetch_one=True
@@ -245,12 +309,24 @@ async def save_changes(plan_id: str, req_id: str, request: SaveChangesRequest):
         [plan_id, req_id]
     )
 
-    return await _get_requirement_with_courses(req_id)
+    result = await _get_requirement_with_courses(req_id)
+    await FastAPICache.clear(namespace="plans")
+    return result
 
 
-@router.post("/{plan_id}/requirements/{req_id}/drafts")
-async def save_draft(plan_id: str, req_id: str, body: dict):
+@router.post(
+    "/{plan_id}/requirements/{req_id}/drafts",
+    response_model=StatusResponse,
+    description=f"Save or upsert a draft for a requirement. Requires key permission: `{KeyPermissions.WRITE_PLANS.value}`",
+)
+async def save_draft(
+    plan_id: str,
+    req_id: str,
+    body: dict,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.WRITE_PLANS]),
+):
     """Save/upsert draft for a requirement."""
+    logger.info(f"save_draft called, plan_id={plan_id}, req_id={req_id}")
     req = await execute_query(
         "SELECT * FROM requirements WHERE id = ? AND plan_id = ?",
         [req_id, plan_id], fetch_one=True
@@ -280,9 +356,18 @@ async def save_draft(plan_id: str, req_id: str, body: dict):
     return {"status": "saved"}
 
 
-@router.delete("/{plan_id}/requirements/{req_id}/drafts")
-async def delete_draft(plan_id: str, req_id: str):
+@router.delete(
+    "/{plan_id}/requirements/{req_id}/drafts",
+    response_model=StatusResponse,
+    description=f"Delete the draft for a requirement. Requires key permission: `{KeyPermissions.WRITE_PLANS.value}`",
+)
+async def delete_draft(
+    plan_id: str,
+    req_id: str,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.WRITE_PLANS]),
+):
     """Delete draft for a requirement."""
+    logger.info(f"delete_draft called, plan_id={plan_id}, req_id={req_id}")
     await execute_write(
         "DELETE FROM drafts WHERE plan_id = ? AND requirement_id = ?",
         [plan_id, req_id]
@@ -290,9 +375,17 @@ async def delete_draft(plan_id: str, req_id: str):
     return {"status": "deleted"}
 
 
-@router.get("/{plan_id}/drafts")
-async def get_drafts(plan_id: str):
+@router.get(
+    "/{plan_id}/drafts",
+    response_model=list[DraftResponse],
+    description=f"Get all drafts for a plan. Requires key permission: `{KeyPermissions.READ_PLANS.value}`",
+)
+async def get_drafts(
+    plan_id: str,
+    user=Security(get_authenticated_user, scopes=[KeyPermissions.READ_PLANS]),
+):
     """Get all drafts for a plan."""
+    logger.info(f"get_drafts called, plan_id={plan_id}")
     drafts_data = await execute_query(
         "SELECT * FROM drafts WHERE plan_id = ? ORDER BY updated_at DESC",
         [plan_id]
